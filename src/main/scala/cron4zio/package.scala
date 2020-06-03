@@ -5,7 +5,7 @@ import cron4s.expr.CronExpr
 import cron4s.lib.javatime._
 import zio.clock.{Clock, sleep}
 import zio.duration.Duration
-import zio.{IO, Schedule, UIO, ZIO}
+import zio.{IO, Schedule, ZIO}
 
 package object cron4zio {
 
@@ -17,7 +17,7 @@ package object cron4zio {
 
   def getNextDuration(cronExpr: CronExpr): IO[Throwable, Duration] = {
     for {
-      timeNow           <- UIO.succeed(LocalDateTime.now)
+      timeNow           <- ZIO.effectTotal(LocalDateTime.now)
       timeNext          <- ZIO.fromOption(cronExpr.next(timeNow)).mapError(_ => new Throwable("Non Recoverable Error"))
       durationInNanos   = timeNow.until(timeNext, ChronoUnit.NANOS)
       duration          = Duration.fromNanos(durationInNanos)
