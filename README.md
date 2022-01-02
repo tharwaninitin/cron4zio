@@ -7,12 +7,11 @@
 ```scala
 import java.time.LocalTime
 import cron4zio._
-import cron4s.Cron
-import zio.{Runtime, Task}
+import zio.{Runtime, Task, UIO}
 
-val everyFiveSeconds = Cron.unsafeParse("*/5 * * ? * *")
+val everyFiveSeconds = parseCron("*/5 * * ? * *").get
 
-val printTime = Task(println(LocalTime.now))
+val printTime = UIO(println(LocalTime.now))
 
 val scheduled = repeatEffectForCron(printTime,everyFiveSeconds)
 
