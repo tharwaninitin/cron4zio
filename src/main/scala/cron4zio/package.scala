@@ -1,26 +1,26 @@
-import com.cronutils.model.definition.{CronConstraintsFactory, CronDefinitionBuilder}
+import com.cronutils.model.definition.{CronConstraintsFactory, CronDefinition, CronDefinitionBuilder}
 import com.cronutils.model.time.ExecutionTime
 import com.cronutils.parser.CronParser
 import zio.clock.{Clock, sleep}
 import zio.duration.Duration
-import zio.{RIO, Schedule, Task, UIO, URIO, ZIO}
+import zio.{RIO, Schedule, Task, ZIO}
 import java.time.temporal.ChronoUnit
 import java.time.{LocalDateTime, ZoneId}
 import java.util.TimeZone
 import scala.util.Try
 
 package object cron4zio {
+  // format: off
   /* Our cron definition uses below cron expressions that go from seconds to day of week in the following order:
-     Seconds	0-59	                    - * /
-     Minutes	0-59	                    - * /
-     Hours	0-23	                      - * /
-     Day (of month)	1-31	            * ? / L W
-     Month	1-12 or JAN-DEC	            - * /
-     Day (of week)	1-7 or SUN-SAT	    - * ? / L #
-     Year (optional)	empty, 1970-2099	- * /
-   */
-
-  val initiateCron = CronDefinitionBuilder.defineCron()
+   Seconds	0-59	                    - * /
+   Minutes	0-59	                    - * /
+   Hours	0-23	                      - * /
+   Day (of month)	1-31	            * ? / L W
+   Month	1-12 or JAN-DEC	            - * /
+   Day (of week)	1-7 or SUN-SAT	    - * ? / L #
+   Year (optional)	empty, 1970-2099	- * /
+ */
+  val initiateCron: CronDefinition = CronDefinitionBuilder.defineCron()
     .withSeconds().withValidRange(0, 59).and()
     .withMinutes().withValidRange(0, 59).and()
     .withHours().withValidRange(0, 23).and()
@@ -30,40 +30,43 @@ package object cron4zio {
     .withYear().withValidRange(1970, 2099).withStrictRange().optional().and()
     .withCronValidation(CronConstraintsFactory.ensureEitherDayOfWeekOrDayOfMonth())
     .instance()
+  // format: on
 
   val zoneId: ZoneId = TimeZone.getDefault.toZoneId
 
-  def parseCron(cron: String): Try[ExecutionTime] = {
+  def parseCron(cron: String): Try[ExecutionTime] =
     Try(ExecutionTime.forCron(new CronParser(initiateCron).parse(cron)))
-  }
 
   def sleepForCron(cronExpr: ExecutionTime): RIO[Clock, Unit] =
-    getNextDuration(cronExpr).flatMap(duration => {
-      sleep(duration)
-    })
+    getNextDuration(cronExpr).flatMap(duration => sleep(duration))
 
-  def getNextDuration(cronExpr: ExecutionTime): Task[Duration] = {
+  def getNextDuration(cronExpr: ExecutionTime): Task[Duration] =
     for {
-      timeNow         <- ZIO.effectTotal(LocalDateTime.now().atZone(zoneId))
-      timeNext        <- Task(cronExpr.nextExecution(timeNow).get()).orElseFail(new Throwable("Non Recoverable Error"))
-      durationInNanos =  timeNow.until(timeNext, ChronoUnit.NANOS)
-      duration        =  Duration.fromNanos(durationInNanos)
+      timeNow  <- ZIO.effectTotal(LocalDateTime.now().atZone(zoneId))
+      timeNext <- Task(cronExpr.nextExecution(timeNow).get()).orElseFail(new Throwable("Non Recoverable Error"))
+      durationInNanos = timeNow.until(timeNext, ChronoUnit.NANOS)
+      duration        = Duration.fromNanos(durationInNanos)
     } yield duration
-  }
 
-  def repeatEffectForCron[R,A](effect: RIO[R,A], cronExpr: ExecutionTime, maxRecurs: Int = 0): RIO[R with Clock,Long] =
+  def repeatEffectForCron[R, A](
+      effect: RIO[R, A],
+      cronExpr: ExecutionTime,
+      maxRecurs: Int = 0
+  ): RIO[R with Clock, Long] =
     if (maxRecurs != 0)
       (sleepForCron(cronExpr) *> effect).repeat(Schedule.recurs(maxRecurs))
     else
       (sleepForCron(cronExpr) *> effect).repeat(Schedule.forever)
 
-  def repeatEffectsForCron[R,A](tasks: List[(ExecutionTime,RIO[R,A])]): RIO[R with Clock, Unit] = {
+  def repeatEffectsForCron[R, A](tasks: List[(ExecutionTime, RIO[R, A])]): RIO[R with Clock, Unit] = {
     val scheduled = tasks.map { case (cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever) }
     ZIO.collectAllPar_(scheduled)
   }
 
-  def repeatEffectsForCronWithName[R,A](tasks: List[(String,ExecutionTime,RIO[R,A])]): RIO[R with Clock, Unit] = {
-    val scheduled = tasks.map { case (name, cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever).forkAs(name) }
+  def repeatEffectsForCronWithName[R, A](tasks: List[(String, ExecutionTime, RIO[R, A])]): RIO[R with Clock, Unit] = {
+    val scheduled = tasks.map { case (name, cronExpr, task) =>
+      (sleepForCron(cronExpr) *> task).repeat(Schedule.forever).forkAs(name)
+    }
     ZIO.collectAllPar_(scheduled)
   }
 }
