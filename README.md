@@ -1,6 +1,6 @@
 # cron4zio
 
-**cron4zio** is a library which provides support for running ZIO effects based on Cron4s cron expressions.
+**cron4zio** is a library which provides support for running ZIO effects based on cron expressions.
 
 ## Examples
 
