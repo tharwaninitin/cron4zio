@@ -10,12 +10,6 @@ import java.util.TimeZone
 import scala.util.Try
 
 package object cron4zio {
-  class Cron(val name: String, val cron: Option[ExecutionTime])
-  object Cron {
-    def apply(cron: String) = new Cron(cron, parseCron(cron).toOption)
-  }
-  case class CronJob(job_name: String, schedule: Cron)
-
   /* Our cron definition uses below cron expressions that go from seconds to day of week in the following order:
      Seconds	0-59	                    - * /
      Minutes	0-59	                    - * /
@@ -57,18 +51,18 @@ package object cron4zio {
     } yield duration
   }
 
-  def repeatEffectForCron[A](effect: UIO[A], cronExpr: ExecutionTime, maxRecurs: Int = 0): RIO[Clock, Long] =
+  def repeatEffectForCron[R,A](effect: RIO[R,A], cronExpr: ExecutionTime, maxRecurs: Int = 0): RIO[R with Clock,Long] =
     if (maxRecurs != 0)
       (sleepForCron(cronExpr) *> effect).repeat(Schedule.recurs(maxRecurs))
     else
       (sleepForCron(cronExpr) *> effect).repeat(Schedule.forever)
 
-  def repeatEffectsForCron[R,A](tasks: List[(ExecutionTime,URIO[R,A])]): RIO[R with Clock, Unit] = {
+  def repeatEffectsForCron[R,A](tasks: List[(ExecutionTime,RIO[R,A])]): RIO[R with Clock, Unit] = {
     val scheduled = tasks.map { case (cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever) }
     ZIO.collectAllPar_(scheduled)
   }
 
-  def repeatEffectsForCronWithName[R,A](tasks: List[(String,ExecutionTime,URIO[R,A])]): RIO[R with Clock, Unit] = {
+  def repeatEffectsForCronWithName[R,A](tasks: List[(String,ExecutionTime,RIO[R,A])]): RIO[R with Clock, Unit] = {
     val scheduled = tasks.map { case (name, cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever).forkAs(name) }
     ZIO.collectAllPar_(scheduled)
   }

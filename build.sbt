@@ -8,7 +8,7 @@ val EtlFlowVersion = "0.1.0"
 lazy val ZioVersion = "1.0.13"
 lazy val CronUtilsVersion = "9.1.6"
 
-lazy val core = (project in file("."))
+lazy val cron4zio = (project in file("."))
   .settings(
     name := "cron4zio",
     organization := "com.github.tharwaninitin",

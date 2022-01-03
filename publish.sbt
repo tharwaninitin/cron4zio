@@ -1,4 +1,4 @@
-ThisBuild / organization := "com.github.tharwaninitin"
+ThisBuild / organization.withRank(KeyRanks.Invisible) := "com.github.tharwaninitin"
 ThisBuild / organizationName := "github"
 ThisBuild / organizationHomepage := Some(url("https://github.com/tharwaninitin/cron4zio"))
 ThisBuild / scmInfo := Some(
@@ -22,4 +22,4 @@ ThisBuild / publishTo := {
   if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
-ThisBuild / publishMavenStyle := true
+ThisBuild / publishMavenStyle.withRank(KeyRanks.Invisible) := true
