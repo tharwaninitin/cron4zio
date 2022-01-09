@@ -1,22 +1,21 @@
-val scala212         = "2.12.15"
-val scala213         = "2.13.7"
-val scala3           = "3.1.0"
-val allScalaVersions = List(scala212, scala213, scala3)
-val cron4zioVersion  = "0.1.0"
-val ZioVersion       = "1.0.13"
-val CronUtilsVersion = "9.1.6"
+import Dependencies._
+import ScalaCompileOptions._
+import Versions._
 
 lazy val cron4zio = (project in file("."))
   .settings(
     name         := "cron4zio",
-    version      := cron4zioVersion,
+    version      := "0.1.0",
     scalaVersion := scala212,
-    libraryDependencies ++= Seq(
-      "dev.zio"      %% "zio"          % ZioVersion,
-      "com.cronutils" % "cron-utils"   % CronUtilsVersion,
-      "dev.zio"      %% "zio-test-sbt" % ZioVersion % Test
-    ),
-    crossScalaVersions       := allScalaVersions,
+    libraryDependencies ++= core ++ testLibs,
+    crossScalaVersions := allScalaVersions,
+    scalacOptions ++= {
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, _)) => s2copts
+        case Some((3, _)) => s3copts
+        case _            => Seq()
+      }
+    },
     Test / parallelExecution := false,
     testFrameworks += new TestFramework("zio.test.sbt.ZTestFramework")
   )

@@ -10,5 +10,13 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Run tests
+    - name: Run tests for all scala versions
       run: sbt "+test"
+    - name: Run test with coverage
+      run: sbt coverage test
+    - name: Coverage Report
+      run: sbt coverageReport
+    - name: Upload coverage to Codecov
+      uses: "codecov/codecov-action@v1"
+      with:
+        fail_ci_if_error: true

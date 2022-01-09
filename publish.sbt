@@ -1,10 +1,3 @@
-/*
-// Github Publish Settings
-ThisBuild / publishTo := Some("GitHub tharwaninitin Apache Maven Packages" at s"https://maven.pkg.github.com/tharwaninitin/${name.value}")
-ThisBuild / publishMavenStyle := true
-ThisBuild / credentials += Credentials("GitHub Package Registry", "maven.pkg.github.com", "tharwaninitin", System.getenv("GITHUB_TOKEN"))
- */
-
 // Mandatory Publish Settings
 ThisBuild / pomIncludeRepository := { _ => false }
 ThisBuild / publishTo := {
@@ -20,7 +13,7 @@ ThisBuild / organizationName     := "github"
 ThisBuild / organizationHomepage := Some(url(s"https://github.com/tharwaninitin/${name.value}"))
 ThisBuild / homepage             := Some(url(s"https://github.com/tharwaninitin/${name.value}"))
 ThisBuild / scmInfo := Some(
-  ScmInfo(url(s"https://github.com/tharwaninitin/$project"), s"scm:git@github.com:tharwaninitin/${name.value}.git")
+  ScmInfo(url(s"https://github.com/tharwaninitin/${name.value}"), s"scm:git@github.com:tharwaninitin/${name.value}.git")
 )
 ThisBuild / developers := List(
   Developer("tharwaninitin", "Nitin Tharwani", "tharwaninitin182@gmail.com", url("https://github.com/tharwaninitin"))
