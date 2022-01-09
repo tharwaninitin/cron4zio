@@ -50,23 +50,16 @@ package object cron4zio {
 
   def repeatEffectForCron[R, A](
       effect: RIO[R, A],
-      cronExpr: ExecutionTime,
+      cron: ExecutionTime,
       maxRecurs: Int = 0
   ): RIO[R with Clock, Long] =
     if (maxRecurs != 0)
-      (sleepForCron(cronExpr) *> effect).repeat(Schedule.recurs(maxRecurs))
+      (sleepForCron(cron) *> effect).repeat(Schedule.recurs(maxRecurs))
     else
-      (sleepForCron(cronExpr) *> effect).repeat(Schedule.forever)
+      (sleepForCron(cron) *> effect).repeat(Schedule.forever)
 
-  def repeatEffectsForCron[R, A](tasks: List[(ExecutionTime, RIO[R, A])]): RIO[R with Clock, Unit] = {
-    val scheduled = tasks.map { case (cronExpr, task) => (sleepForCron(cronExpr) *> task).repeat(Schedule.forever) }
-    ZIO.collectAllPar_(scheduled)
-  }
+  type CronTasks[R, A] = (RIO[R, A], ExecutionTime, Int)
 
-  def repeatEffectsForCronWithName[R, A](tasks: List[(String, ExecutionTime, RIO[R, A])]): RIO[R with Clock, Unit] = {
-    val scheduled = tasks.map { case (name, cronExpr, task) =>
-      (sleepForCron(cronExpr) *> task).repeat(Schedule.forever).forkAs(name)
-    }
-    ZIO.collectAllPar_(scheduled)
-  }
+  def repeatEffectsForCron[R, A](tasks: List[CronTasks[R, A]]): RIO[R with Clock, List[Long]] =
+    ZIO.foreachPar(tasks)(input => repeatEffectForCron(input._1, input._2, input._3))
 }
