@@ -37,13 +37,13 @@ package object cron4zio {
   def parseCron(cron: String): Try[ExecutionTime] =
     Try(ExecutionTime.forCron(new CronParser(initiateCron).parse(cron)))
 
-  def sleepForCron(cronExpr: ExecutionTime): RIO[Clock, Unit] =
-    getNextDuration(cronExpr).flatMap(duration => sleep(duration))
+  def sleepForCron(cron: ExecutionTime): RIO[Clock, Unit] =
+    getNextDuration(cron).flatMap(duration => sleep(duration))
 
-  def getNextDuration(cronExpr: ExecutionTime): Task[Duration] =
+  def getNextDuration(cron: ExecutionTime): Task[Duration] =
     for {
       timeNow  <- ZIO.effectTotal(LocalDateTime.now().atZone(zoneId))
-      timeNext <- Task(cronExpr.nextExecution(timeNow).get()).orElseFail(new Throwable("Non Recoverable Error"))
+      timeNext <- Task(cron.nextExecution(timeNow).get()).orElseFail(new Throwable("Non Recoverable Error"))
       durationInNanos = timeNow.until(timeNext, ChronoUnit.NANOS)
       duration        = Duration.fromNanos(durationInNanos)
     } yield duration
