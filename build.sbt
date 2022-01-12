@@ -5,7 +5,7 @@ import Versions._
 lazy val cron4zio = (project in file("."))
   .settings(
     name         := "cron4zio",
-    version      := "0.1.0",
+    version      := "0.2.1",
     scalaVersion := scala212,
     libraryDependencies ++= core ++ testLibs,
     crossScalaVersions := allScalaVersions,
