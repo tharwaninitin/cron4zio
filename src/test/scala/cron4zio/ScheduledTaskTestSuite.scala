@@ -29,9 +29,9 @@ object ScheduledTaskTestSuite {
         val everyTwoSeconds = parse("*/2 * * ? * *").get
         val task            = Task(println(LocalTime.now))
         val tasks           = List((task, everyTwoSeconds), (task, everyTwoSeconds))
-        val scheduled       = repeatEffectsForCron(tasks).provideLayer(Clock.live)
+        val scheduled       = repeatEffectsForCron(tasks, 2).provideLayer(Clock.live)
         assertM(scheduled.foldM(ex => ZIO.succeed(List(ex.getMessage)), op => ZIO.succeed(op.map(_.toString))))(
-          equalTo(List("2", "3"))
+          equalTo(List("2", "2"))
         )
       }
     ) @@ TestAspect.sequential
