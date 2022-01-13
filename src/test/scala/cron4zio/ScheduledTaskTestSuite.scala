@@ -1,6 +1,8 @@
 package cron4zio
 
 import zio.clock.Clock
+import zio.console.Console
+import zio.duration.Duration
 import zio.test.Assertion._
 import zio.test._
 import zio.{Task, ZIO}
@@ -11,18 +13,16 @@ object ScheduledTaskTestSuite {
     suite("Schedule Tasks")(
       testM("Execute repeatEffectForCron where task time is less than interval time") {
         val everyThreeSeconds = parse("*/3 * * ? * *").get
-        val printTime         = Task(println(LocalTime.now))
-        val scheduled         = repeatEffectForCron(printTime, everyThreeSeconds, 2).provideLayer(Clock.live)
+        val printTime         = zio.console.putStrLn(LocalTime.now.toString)
+        val scheduled = repeatEffectForCron(printTime, everyThreeSeconds, 2).provideSomeLayer[Console](Clock.live)
         assertM(scheduled.foldM(ex => ZIO.succeed(ex.getMessage), l => ZIO.succeed(l.toString)))(equalTo("2"))
       },
       testM("Execute repeatEffectForCron where task time is greater than interval time") {
         val everyFiveSeconds = parse("*/5 * * ? * *").get
-        val printTime = Task {
-          println("Started " + LocalTime.now)
-          Thread.sleep(6000)
-          println("Ended " + LocalTime.now)
-        }
-        val scheduled = repeatEffectForCron(printTime, everyFiveSeconds, 2).provideLayer(Clock.live)
+        val printTime = zio.console.putStrLn("Started " + LocalTime.now.toString) *>
+          ZIO.sleep(Duration.fromMillis(6000)) *>
+          zio.console.putStrLn("Ended " + LocalTime.now.toString)
+        val scheduled = repeatEffectForCron(printTime, everyFiveSeconds, 2).provideSomeLayer[Console](Clock.live)
         assertM(scheduled.foldM(ex => ZIO.succeed(ex.getMessage), l => ZIO.succeed(l.toString)))(equalTo("2"))
       },
       testM("Execute repeatEffectsForCron with multiple tasks") {
