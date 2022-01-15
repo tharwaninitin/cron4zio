@@ -33,13 +33,13 @@ __Maven__
 ```scala
 import java.time.LocalTime
 import cron4zio._
-import zio.{Runtime, Task, UIO}
+import zio._
 
-val everyFiveSeconds = parseCron("*/5 * * ? * *").get
+val everyTwoSeconds = parse("*/2 * * ? * *").get
 
 val printTime = UIO(println(LocalTime.now))
 
-val scheduled = repeatEffectForCron(printTime,everyFiveSeconds)
+val scheduled = repeatEffectForCron(printTime, everyTwoSeconds)
 
 Runtime.default.unsafeRun(scheduled)
 ```
