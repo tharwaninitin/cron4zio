@@ -1,6 +1,6 @@
 # Cron4ZIO
 [![License](http://img.shields.io/:license-Apache%202-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.txt)
-[![Tests](https://github.com/tharwaninitin/scalatemplate/actions/workflows/tests.yml/badge.svg)](https://github.com/tharwaninitin/etlflow/actions/workflows/tests.yml)
+[![CI](https://github.com/tharwaninitin/cron4zio/actions/workflows/ci.yml/badge.svg)](https://github.com/tharwaninitin/cron4zio/actions/workflows/ci.yml)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.tharwaninitin/cron4zio_2.12/badge.svg)](https://mvnrepository.com/artifact/com.github.tharwaninitin/cron4zio)
 [![javadoc](https://javadoc.io/badge2/com.github.tharwaninitin/cron4zio_2.12/javadoc.svg)](https://javadoc.io/doc/com.github.tharwaninitin/cron4zio_2.12)
 [![codecov](https://codecov.io/gh/tharwaninitin/cron4zio/branch/master/graph/badge.svg?token=HWKAPV7TTW)](https://codecov.io/gh/tharwaninitin/cron4zio)

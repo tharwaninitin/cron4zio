@@ -4,7 +4,7 @@ import zio.ZIO
 import zio.test.Assertion.equalTo
 import zio.test._
 
-object CronTestSuite {
+object CronParserTestSuite {
   val spec: ZSpec[environment.TestEnvironment, Any] =
     suite("Cron Parser")(
       test("parse should parse cron correctly: A run frequency of once at 16:25 on December 18, 2018 ") {
