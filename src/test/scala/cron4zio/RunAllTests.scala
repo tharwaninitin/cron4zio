@@ -2,8 +2,8 @@ package cron4zio
 
 import zio.test._
 
-object RunAllTests extends DefaultRunnableSpec {
-  val spec: ZSpec[environment.TestEnvironment, Any] =
+object RunAllTests extends ZIOSpecDefault {
+  val spec: Spec[TestEnvironment, Any] =
     suite("Cron Test Suites")(
       CronParserTestSuite.spec,
       ScheduledTaskTestSuite.spec
