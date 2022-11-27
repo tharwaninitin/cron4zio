@@ -14,7 +14,7 @@ object CronParserTestSuite {
     suite("Cron Parser")(
       test("parse should parse cron correctly: A run frequency of once at 16:25 on December 18, 2018 ") {
         val cron = "0 25 16 18 DEC ? 2018"
-        println(desc.describe(parse(cron).get))
+        println(desc.describe(unsafeParse(cron)))
         assertTrue(parse(cron).isSuccess)
       },
       test("parse should parse cron correctly but should fail to generate next run") {
