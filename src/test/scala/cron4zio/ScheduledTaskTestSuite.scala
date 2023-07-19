@@ -1,6 +1,6 @@
 package cron4zio
 
-import zio.{ZIO, durationInt}
+import zio.{durationInt, ZIO}
 import zio.test.Assertion.equalTo
 import zio.test._
 import java.time.{OffsetDateTime, ZoneOffset}

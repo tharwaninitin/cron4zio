@@ -8,5 +8,5 @@ object Versions {
   val allScalaVersions = List(scala212, scala213, scala3)
 
   val zioVersion       = "2.0.15"
-  val cronUtilsVersion = "9.2.0"
+  val cronUtilsVersion = "9.2.1"
 }
