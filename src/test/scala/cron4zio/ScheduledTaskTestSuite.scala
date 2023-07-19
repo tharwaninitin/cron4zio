@@ -1,6 +1,6 @@
 package cron4zio
 
-import zio.{durationInt, ZIO}
+import zio.{ZIO, durationInt}
 import zio.test.Assertion.equalTo
 import zio.test._
 import java.time.{OffsetDateTime, ZoneOffset}
@@ -16,13 +16,7 @@ object ScheduledTaskTestSuite {
           ZIO.sleep(2.second) *>
           zio.Clock.localDateTime.flatMap(dt => zio.Console.printLine(" Ended " + dt.toString))
         val scheduled = repeatEffectForCron(printTime, everyThreeSeconds, 2)
-        val program = for {
-          _  <- TestClock.setTime(time.toInstant)
-          s  <- scheduled.fork
-          _  <- TestClock.adjust(20.second)
-          op <- s.join
-        } yield op
-        assertZIO(program.foldZIO(ex => ZIO.succeed(ex.getMessage), l => ZIO.succeed(l.toString)))(equalTo("2"))
+        assertZIO(scheduled.foldZIO(ex => ZIO.succeed(ex.getMessage), l => ZIO.succeed(l.toString)))(equalTo("2"))
       },
       test("Execute repeatEffectForCron where task time is greater than interval time") {
         val everyFiveSeconds = parse("*/5 * * ? * *").get
@@ -30,26 +24,16 @@ object ScheduledTaskTestSuite {
           ZIO.sleep(6.second) *>
           zio.Clock.localDateTime.flatMap(dt => zio.Console.printLine(" Ended " + dt.toString))
         val scheduled = repeatEffectForCron(printTime, everyFiveSeconds, 2)
-        val program = for {
-          s  <- scheduled.fork
-          _  <- TestClock.adjust(50.second)
-          op <- s.join
-        } yield op
-        assertZIO(program.foldZIO(ex => ZIO.succeed(ex.getMessage), l => ZIO.succeed(l.toString)))(equalTo("2"))
+        assertZIO(scheduled.foldZIO(ex => ZIO.succeed(ex.getMessage), l => ZIO.succeed(l.toString)))(equalTo("2"))
       },
       test("Execute repeatEffectsForCron with multiple tasks") {
         val everyTwoSeconds = parse("*/2 * * ? * *").get
         val task            = zio.Clock.localDateTime.flatMap(dt => zio.Console.print(dt.toString))
         val tasks           = List((task, everyTwoSeconds), (task, everyTwoSeconds))
         val scheduled       = repeatEffectsForCron(tasks, 2)
-        val program = for {
-          s  <- scheduled.fork
-          _  <- TestClock.adjust(10.second)
-          op <- s.join
-        } yield op
-        assertZIO(program.foldZIO(ex => ZIO.succeed(List(ex.getMessage)), op => ZIO.succeed(op.map(_.toString))))(
+        assertZIO(scheduled.foldZIO(ex => ZIO.succeed(List(ex.getMessage)), op => ZIO.succeed(op.map(_.toString))))(
           equalTo(List("2", "2"))
         )
       }
-    ) @@ TestAspect.sequential
+    ) @@ TestAspect.withLiveClock @@ TestAspect.sequential
 }
