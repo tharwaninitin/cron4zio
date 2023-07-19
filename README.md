@@ -8,7 +8,7 @@
 **cron4zio** is a library which provides support for scheduling ZIO effects based on cron expressions.
 
 ## Scala Version Compatibility Matrix
-This project is compiled with scala versions 2.12.17, 2.13.10, 3.3.0
+This project is compiled with scala versions 2.12.15, 2.13.10, 3.3.0
 
 | Scala 2.12 | Scala 2.13 | Scala 3.X | 
 |:----------:|-----------:|----------:|
@@ -20,14 +20,14 @@ Add the latest release as a dependency to your project
 
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "cron4zio" % "1.0.0"
+libraryDependencies += "com.github.tharwaninitin" %% "cron4zio" % "1.0.1"
 ```
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>cron4zio_2.12</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 

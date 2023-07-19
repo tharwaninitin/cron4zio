@@ -3,7 +3,7 @@ object Versions {
   val scala213 = "2.13.10"
   val scala3   = "3.3.0"
 
-  val cron4ZIOVersion  = "1.0.0"
+  val cron4ZIOVersion  = "1.0.1"
   val scala2Versions   = List(scala212, scala213)
   val allScalaVersions = List(scala212, scala213, scala3)
 
