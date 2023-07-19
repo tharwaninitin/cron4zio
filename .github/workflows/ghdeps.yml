@@ -7,3 +7,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: scalacenter/sbt-dependency-submission@v2
+        with:
+          modules-ignore: cron4zio-docs_2.12
