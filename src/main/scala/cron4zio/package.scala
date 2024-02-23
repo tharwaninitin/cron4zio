@@ -33,81 +33,103 @@ package object cron4zio {
 
   val cronParser: CronParser = new CronParser(cronDefinition)
 
-  /** @param cron
-    * @return
-    *   Cron instance, which corresponds to cron expression received as String or throws IllegalArgumentException if expression
-    *   does not match cron definition
-    */
-  def unsafeParse(cron: String): Cron = cronParser.parse(cron)
-
-  /** @param cron
-    * @return
-    *   Cron instance, which corresponds to cron expression received as String or throws IllegalArgumentException if expression
-    *   does not match cron definition
-    */
+  /** Parses a Cron expression string into a Cron instance.
+   *
+   * @param cron
+   *   The Cron expression string to parse.
+   * @return
+   *   A Cron instance corresponding to the parsed Cron expression, or a Failure if the expression does not match the Cron definition.
+   */
   def parse(cron: String): Try[Cron] = Try(cronParser.parse(cron))
 
-  /** @param cron
-    * @param zoneId
-    * @return
-    *   Duration between current time and next run based on cron,zoneId provided or throws IllegalArgumentException if for a valid
-    *   cron next run cannot be generated
-    */
+  /** Parses a Cron expression string into a Cron instance. This method does not handle parsing errors gracefully.
+   *
+   * @param cron
+   *   The Cron expression string to parse.
+   * @return
+   *   A Cron instance corresponding to the parsed Cron expression, or throws an IllegalArgumentException if the expression
+   *   does not match the Cron definition.
+   */
+  def unsafeParse(cron: String): Cron = cronParser.parse(cron)
+
+  /** Calculates the duration until the next execution time of a Cron job.
+   *
+   * @param cron
+   *   The Cron instance representing the Cron job.
+   * @param zoneId
+   *   The time zone to use for calculating the current time.
+   * @return
+   *   The duration until the next execution time of the Cron job, wrapped in an IO monad.
+   *   Fails with IllegalArgumentException if the next run cannot be generated for the provided Cron.
+   */
   def getNextRunDuration(
       cron: Cron,
       zoneId: ZoneId = TimeZone.getDefault.toZoneId
   ): IO[IllegalArgumentException, Duration] =
     for {
       timeNow <- ZIO.succeed(LocalDateTime.now().atZone(zoneId))
-      timeNext <- ZIO
-        .attempt(
-          ExecutionTime
-            .forCron(cron)
-            .nextExecution(timeNow)
-            .orElseThrow(() => new IllegalArgumentException(s"Cannot generate next run from provided cron => ${cron.asString()}"))
-        )
-        .refineToOrDie[IllegalArgumentException]
+      timeNext <- ZIO.attempt(
+        ExecutionTime
+          .forCron(cron)
+          .nextExecution(timeNow)
+          .orElseThrow(() => new IllegalArgumentException(s"Cannot generate next run from provided cron => ${cron.asString()}"))
+      ).refineToOrDie[IllegalArgumentException]
       durationInNanos = timeNow.until(timeNext, ChronoUnit.NANOS)
       duration        = Duration.fromNanos(durationInNanos)
     } yield duration
 
-  /** @param cron
-    * @param zoneId
-    * @return
-    *   Effect which will sleep in non-blocking way for duration between current time and next run
-    */
+  /** Sleeps in a non-blocking way until the next execution time of a Cron job.
+   *
+   * @param cron
+   *   The Cron instance representing the Cron job.
+   * @param zoneId
+   *   The time zone to use for calculating the current time.
+   * @return
+   *   An effect that sleeps until the next execution time of the Cron job.
+   */
   def sleepForCron(
       cron: Cron,
       zoneId: ZoneId = TimeZone.getDefault.toZoneId
   ): IO[IllegalArgumentException, Unit] =
     getNextRunDuration(cron, zoneId).flatMap(duration => ZIO.sleep(duration))
 
-  /** @param effect
-    * @param cron
-    * @param maxRecurs
-    * @param zoneId
-    * @return
-    *   This will either return number of times effect ran for cron or will never return anything and keep running forever based
-    *   on value of param maxRecurs
-    */
+  /** Repeats an effect according to the schedule defined by a Cron job.
+   *
+   * @param effect
+   *   The effect to repeat.
+   * @param cron
+   *   The Cron instance representing the schedule.
+   * @param maxRecurs
+   *   Maximum number of times to repeat the effect. If 0, the effect will repeat indefinitely.
+   * @param zoneId
+   *   The time zone to use for calculating the current time.
+   * @return
+   *   An effect that repeats the given effect according to the Cron schedule.
+   */
   def repeatEffectForCron[R, E >: Throwable, A](
       effect: ZIO[R, E, A],
       cron: Cron,
       maxRecurs: Int = 0,
       zoneId: ZoneId = TimeZone.getDefault.toZoneId
-  ): ZIO[R, E, Long] =
+  ): ZIO[R, E, Long] = {
+    val effectWithSleep = sleepForCron(cron, zoneId) *> effect
     if (maxRecurs != 0)
-      (sleepForCron(cron, zoneId) *> effect).repeat(Schedule.recurs(maxRecurs))
+      effectWithSleep.repeat(Schedule.recurs(maxRecurs))
     else
-      (sleepForCron(cron, zoneId) *> effect).repeat(Schedule.forever)
+      effectWithSleep.repeat(Schedule.forever)
+  }
 
-  /** @param tasks
-    * @param maxRecurs
-    * @param zoneId
-    * @return
-    *   This will either return number of times effects ran for cron or will never return anything and keep running all effects
-    *   forever based on value of param maxRecurs
-    */
+  /** Repeats a list of effects according to their respective Cron schedules.
+   *
+   * @param tasks
+   *   A list of effects paired with their Cron schedules.
+   * @param maxRecurs
+   *   Maximum number of times to repeat each effect. If 0, the effects will repeat indefinitely.
+   * @param zoneId
+   *   The time zone to use for calculating the current time.
+   * @return
+   *   An effect that repeats each effect in the list according to their Cron schedules.
+   */
   def repeatEffectsForCron[R, E >: Throwable, A](
       tasks: List[(ZIO[R, E, A], Cron)],
       maxRecurs: Int = 0,
