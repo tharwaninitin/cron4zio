@@ -88,6 +88,6 @@ There are several special characters that are used to specify values:
 |          A run frequency of 12:00 PM (noon) every first day of the month          |      0 0 12 1 1/1 ? * |
 |        A run frequency of every hour between 8:00 AM and 5:00 PM on Monday        |      0 0 8-17 ? * MON |
 
-## References 
+## References
 - https://stackoverflow.com/questions/30887822/spring-cron-vs-normal-cron
 - https://crontab.guru/
