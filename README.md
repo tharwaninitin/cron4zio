@@ -8,7 +8,7 @@
 **cron4zio** is a library which provides support for scheduling ZIO effects based on cron expressions.
 
 ## Scala Version Compatibility Matrix
-This project is compiled with scala versions 2.12.15, 2.13.10, 3.2.1
+This project is compiled with scala versions 2.12.15, 2.13.10, 3.3.0
 
 | Scala 2.12 | Scala 2.13 | Scala 3.X | 
 |:----------:|-----------:|----------:|
@@ -20,14 +20,14 @@ Add the latest release as a dependency to your project
 
 __SBT__
 ```
-libraryDependencies += "com.github.tharwaninitin" %% "cron4zio" % "1.0.0"
+libraryDependencies += "com.github.tharwaninitin" %% "cron4zio" % "1.0.1"
 ```
 __Maven__
 ```
 <dependency>
     <groupId>com.github.tharwaninitin</groupId>
     <artifactId>cron4zio_2.12</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 </dependency>
 ```
 
@@ -87,3 +87,7 @@ There are several special characters that are used to specify values:
 | A run frequency of 10:15 AM every Monday, Tuesday, Wednesday, Thursday and Friday |   0 15 10 ? * MON-FRI |
 |          A run frequency of 12:00 PM (noon) every first day of the month          |      0 0 12 1 1/1 ? * |
 |        A run frequency of every hour between 8:00 AM and 5:00 PM on Monday        |      0 0 8-17 ? * MON |
+
+## References
+- https://stackoverflow.com/questions/30887822/spring-cron-vs-normal-cron
+- https://crontab.guru/
